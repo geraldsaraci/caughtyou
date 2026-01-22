@@ -6,8 +6,129 @@
   <meta name="theme-color" content="#0a0e27" />
   <meta name="description" content="CAUGHTYOU SOC - Defensive Security Intelligence Platform" />
   <title>CAUGHTYOU SOC</title>
+  <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Courier New', monospace; background: #0a0e27; color: #00ff88; }
+.app { min-height: 100vh; background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1528 100%); padding: 20px; position: relative; }
+.container { max-width: 1400px; margin: 0 auto; }
+header { text-align: center; margin-bottom: 40px; padding: 20px; border: 2px solid #00ff88; border-radius: 10px; background: rgba(0, 255, 136, 0.05); box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); }
+h1 { font-size: 2.5rem; color: #00ff88; text-shadow: 0 0 10px #00ff88; margin-bottom: 10px; letter-spacing: 3px; }
+.subtitle { color: #00ccff; font-size: 1.1rem; text-shadow: 0 0 5px #00ccff; }
+.shield-icon { display: inline-block; margin-right: 10px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { text-shadow: 0 0 10px #00ff88; } 50% { text-shadow: 0 0 30px #00ff88; } }
+.scanner-section { background: rgba(10, 20, 50, 0.8); border: 2px solid #ff00ff; border-radius: 15px; padding: 30px; margin-bottom: 30px; box-shadow: 0 0 30px rgba(255, 0, 255, 0.3); }
+.section-title { color: #ff00ff; font-size: 1.5rem; margin-bottom: 20px; text-shadow: 0 0 10px #ff00ff; }
+.input-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+input[type="text"] { flex: 1; min-width: 250px; padding: 12px 15px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ccff; color: #00ff88; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 1rem; }
+input[type="text"]:focus { outline: none; border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.5); }
+.neon-button { padding: 12px 30px; background: linear-gradient(45deg, #00ff88, #00ccff); border: 2px solid #00ff88; color: #000; font-weight: bold; font-size: 1rem; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; font-family: 'Courier New', monospace; animation: neon-glow 2s infinite; }
+.neon-button:hover { border-color: #ff00ff; transform: scale(1.05); }
+@keyframes neon-glow { 0%, 100% { box-shadow: 0 0 5px #00ff88; } 50% { box-shadow: 0 0 20px #00ff88, 0 0 30px rgba(0, 255, 136, 0.8); } }
+.results-section { background: rgba(10, 20, 50, 0.8); border: 2px solid #00ff88; border-radius: 15px; padding: 30px; margin-top: 30px; box-shadow: 0 0 30px rgba(0, 255, 136, 0.3); }
+.hidden { display: none; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th { padding: 15px; text-align: left; color: #00ff88; border-bottom: 2px solid #00ff88; font-weight: bold; }
+td { padding: 12px 15px; border-bottom: 1px solid rgba(0, 255, 136, 0.2); color: #00ccff; }
+tr:hover { background: rgba(0, 255, 136, 0.1); }
+.threat-critical { color: #ff1744; background: rgba(255, 23, 68, 0.2); padding: 5px 10px; border-radius: 5px; border: 1px solid #ff1744; }
+.threat-high { color: #ffb300; background: rgba(255, 179, 0, 0.2); padding: 5px 10px; border-radius: 5px; border: 1px solid #ffb300; }
+.threat-medium { color: #ffea00; background: rgba(255, 234, 0, 0.2); padding: 5px 10px; border-radius: 5px; border: 1px solid #ffea00; }
+.threat-low { color: #00ff88; background: rgba(0, 255, 136, 0.2); padding: 5px 10px; border-radius: 5px; border: 1px solid #00ff88; }
+.error-message { color: #ff1744; background: rgba(255, 23, 68, 0.1); border: 1px solid #ff1744; padding: 15px; border-radius: 8px; margin-top: 20px; }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="app">
+    <div class="container">
+      <header>
+        <h1><span class="shield-icon">🛡️</span> CAUGHTYOU SOC</h1>
+        <p class="subtitle">Defensive Security Intelligence Platform</p>
+      </header>
+      <div class="scanner-section">
+        <h2 class="section-title">⚡ IP THREAT SCANNER</h2>
+        <div class="input-group">
+          <input type="text" id="ipInput" placeholder="Enter IP address (e.g., 1.1.1.1)" />
+          <button class="neon-button" id="scanBtn">SCAN IP</button>
+        </div>
+        <div id="error" class="error-message" style="display:none;"></div>
+      </div>
+      <div id="results" class="results-section hidden">
+        <h2 class="section-title">📊 SCAN RESULTS</h2>
+        <table id="resultsTable">
+          <thead><tr><th>Property</th><th>Value</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ipInput = document.getElementById('ipInput');
+    const scanBtn = document.getElementById('scanBtn');
+    const errorDiv = document.getElementById('error');
+    const resultsDiv = document.getElementById('results');
+    const resultsTable = document.getElementById('resultsTable').querySelector('tbody');
+
+    scanBtn.addEventListener('click', scanIP);
+    ipInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') scanIP(); });
+
+    async function scanIP() {
+      const ip = ipInput.value.trim();
+      if (!ip) {
+        showError('Please enter an IP address');
+        return;
+      }
+
+      errorDiv.style.display = 'none';
+      scanBtn.disabled = true;
+      scanBtn.textContent = 'SCANNING...';
+
+      try {
+        const response = await fetch('/api/scan/ip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Scan failed');
+        }
+
+        const data = await response.json();
+        displayResults(data);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        scanBtn.disabled = false;
+        scanBtn.textContent = 'SCAN IP';
+      }
+    }
+
+    function displayResults(data) {
+      resultsTable.innerHTML = `
+        <tr><td>IP Address</td><td><strong>${data.ip}</strong></td></tr>
+        <tr><td>Country</td><td>${data.country}</td></tr>
+        <tr><td>ASN</td><td>${data.asn}</td></tr>
+        <tr><td>Organization</td><td>${data.organization}</td></tr>
+        <tr><td>Threat Level</td><td><span class="threat-${data.threat_level.toLowerCase()}">${data.threat_level}</span></td></tr>
+        <tr><td>Malicious Reports</td><td><strong style="color: ${data.malicious_count > 0 ? '#ff1744' : '#00ff88'}">${data.malicious_count}</strong></td></tr>
+        <tr><td>Suspicious Reports</td><td>${data.suspicious_count}</td></tr>
+        <tr><td>Undetected</td><td>${data.undetected_count}</td></tr>
+        <tr><td>Harmless</td><td>${data.harmless_count}</td></tr>
+        <tr><td>VPN</td><td>${data.is_vpn ? '✓ YES' : '✗ NO'}</td></tr>
+        <tr><td>Proxy</td><td>${data.is_proxy ? '✓ YES' : '✗ NO'}</td></tr>
+        <tr><td>Tor</td><td>${data.is_tor ? '✓ YES' : '✗ NO'}</td></tr>
+        <tr><td>Data Center</td><td>${data.is_datacenter ? '✓ YES' : '✗ NO'}</td></tr>
+        <tr><td>Last Scan Date</td><td>${data.last_analysis_date}</td></tr>
+      `;
+      resultsDiv.classList.remove('hidden');
+    }
+
+    function showError(message) {
+      errorDiv.textContent = '⚠️ ' + message;
+      errorDiv.style.display = 'block';
+    }
+  </script>
 </body>
 </html>
