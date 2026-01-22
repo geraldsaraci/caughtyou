@@ -1,0 +1,8 @@
+node_modules/
+client/build/
+client/node_modules/
+.env
+.env.local
+*.log
+.DS_Store
+dist/
