@@ -42,7 +42,7 @@ const IPScanner = () => {
         <div className="input-group">
           <input type="text" placeholder="Enter IP address (e.g., 1.1.1.1)" value={ip} onChange={(e) => setIp(e.target.value)} onKeyPress={handleKeyPress} />
           <button className={`neon-button ${loading ? 'loading' : ''}`} onClick={handleScan} disabled={loading}>
-            {loading ? <><span className="loading-spinner"></span> SCANNING...</> : 'SCAN IP'}
+            {loading ? <>SCANNING...</> : 'SCAN IP'}
           </button>
         </div>
         {error && <div className="error-message">⚠️ {error}</div>}

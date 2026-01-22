@@ -7,10 +7,7 @@ function App() {
     <div className="app">
       <div className="container">
         <header>
-          <h1>
-            <span className="shield-icon">🛡️</span>
-            CAUGHTYOU SOC
-          </h1>
+          <h1><span className="shield-icon">🛡️</span> CAUGHTYOU SOC</h1>
           <p className="subtitle">Defensive Security Intelligence Platform</p>
         </header>
         <IPScanner />
